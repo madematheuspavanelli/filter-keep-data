@@ -6,11 +6,12 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/react";
+import { useEffect } from "react";
 
 interface Props {
   options: SelectOption[];
   selectedIds: string[];
-  onUpdateOptions?: (param: string, options: SelectOption[]) => void;
+  onUpdateOptions?: (options: SelectOption[]) => void;
   onUpdateValues?: (values: SelectOption[]) => void;
 }
 
@@ -24,8 +25,13 @@ export function Select({
     options,
     selectedIds,
     onUpdateValues,
-    onUpdateOptions,
   });
+
+  // useEffect(() => {
+  //   if (onUpdateOptions) {
+  //     onUpdateOptions(options);
+  //   }
+  // }, [onUpdateOptions, options]);
 
   return (
     <div className="z-10 flex flex-col gap-1">
