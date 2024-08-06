@@ -1,14 +1,15 @@
 import { SelectOption } from "@/types/SelectOption";
 import { getPlaceholder } from "@/utils/select-placeholder";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Params {
   options: SelectOption[];
   selectedIds: string[];
-  onUpdate?: (values: SelectOption[]) => void;
+  onUpdateOptions?: (param: string, options: SelectOption[]) => void;
+  onUpdateValues?: (values: SelectOption[]) => void;
 }
 
-export function useSelect({ options, selectedIds, onUpdate }: Params) {
+export function useSelect({ options, selectedIds, onUpdateValues }: Params) {
   const [values, setValues] = useState<SelectOption[]>(() => {
     return options.filter((option) =>
       selectedIds.includes(option.id.toString()),
@@ -17,8 +18,8 @@ export function useSelect({ options, selectedIds, onUpdate }: Params) {
 
   function handleChange(value: SelectOption | SelectOption[]) {
     setValues(Array.isArray(value) ? value : [value]);
-    if (onUpdate) {
-      onUpdate(Array.isArray(value) ? value : [value]);
+    if (onUpdateValues) {
+      onUpdateValues(Array.isArray(value) ? value : [value]);
     }
   }
 
@@ -29,6 +30,12 @@ export function useSelect({ options, selectedIds, onUpdate }: Params) {
       "Selecione",
     );
   }
+
+  useEffect(() => {
+    setValues(
+      options.filter((option) => selectedIds.includes(option.id.toString())),
+    );
+  }, [options, selectedIds]);
 
   return {
     values,

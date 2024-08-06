@@ -10,14 +10,21 @@ import {
 interface Props {
   options: SelectOption[];
   selectedIds: string[];
-  onUpdate?: (values: SelectOption[]) => void;
+  onUpdateOptions?: (param: string, options: SelectOption[]) => void;
+  onUpdateValues?: (values: SelectOption[]) => void;
 }
 
-export function Select({ options, selectedIds, onUpdate }: Props) {
+export function Select({
+  options,
+  selectedIds,
+  onUpdateOptions,
+  onUpdateValues,
+}: Props) {
   const { handleChange, placeholder, values } = useSelect({
     options,
     selectedIds,
-    onUpdate,
+    onUpdateValues,
+    onUpdateOptions,
   });
 
   return (
