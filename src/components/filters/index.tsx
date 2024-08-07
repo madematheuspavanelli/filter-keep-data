@@ -5,7 +5,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { fetchCountry } from "@/api/country";
 import { Country } from "@/types/Country";
 import { fetchBands } from "@/api/bands";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { Band } from "@/types/Band";
 import { FiltersTemplate } from "./template.tsx";
 
@@ -33,15 +33,6 @@ export function Filter() {
       })),
   });
 
-  const prevCountriesRef = useRef<SelectOption[]>([]);
-
-  useEffect(() => {
-    if (prevCountriesRef.current !== countries) {
-      handleUpdate(FilterParams.Country, countries);
-      prevCountriesRef.current = countries;
-    }
-  }, [countries, handleUpdate]);
-
   const { data: bands = [] } = useQuery({
     queryKey: ["bands", selectedCountries],
     placeholderData: keepPreviousData,
@@ -53,15 +44,37 @@ export function Filter() {
       })),
   });
 
-  const prevBandRef = useRef<SelectOption[]>([]);
+  if (selectedCountries) {
+    const countryIds = countries.map((country) => country.id);
+    const selectedCountryIds = selectedCountries.split(",");
 
-  useEffect(() => {
-    if (prevBandRef.current !== bands) {
-      console.log("atuaizando bandas", bands);
-      handleUpdate(FilterParams.RockBands, bands);
-      prevBandRef.current = bands;
+    const missingCountryIds = selectedCountryIds.filter(
+      (id) => !countryIds.includes(parseInt(id)),
+    );
+
+    if (missingCountryIds.length > 0) {
+      const filteredCountries = selectedCountryIds
+        .filter((id) => countryIds.includes(parseInt(id)))
+        .join(",");
+      updateParam(FilterParams.Country, filteredCountries);
     }
-  }, [bands, handleUpdate]);
+  }
+
+  if (selectedRockBands) {
+    const bandIds = bands.map((band) => band.id);
+    const selectedBandIds = selectedRockBands.split(",");
+
+    const missingBandIds = selectedBandIds.filter(
+      (id) => !bandIds.includes(parseInt(id)),
+    );
+
+    if (missingBandIds.length > 0) {
+      const filteredBands = selectedBandIds
+        .filter((id) => bandIds.includes(parseInt(id)))
+        .join(",");
+      updateParam(FilterParams.RockBands, filteredBands);
+    }
+  }
 
   return (
     <FiltersTemplate
