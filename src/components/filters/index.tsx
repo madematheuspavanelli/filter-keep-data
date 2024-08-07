@@ -5,7 +5,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { fetchCountry } from "@/api/country";
 import { Country } from "@/types/Country";
 import { fetchBands } from "@/api/bands";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { Band } from "@/types/Band";
 import { FiltersTemplate } from "./template.tsx";
 
@@ -44,37 +44,41 @@ export function Filter() {
       })),
   });
 
-  if (selectedCountries) {
-    const countryIds = countries.map((country) => country.id);
-    const selectedCountryIds = selectedCountries.split(",");
+  useEffect(() => {
+    if (selectedCountries) {
+      const countryIds = countries.map((country) => country.id);
+      const selectedCountryIds = selectedCountries.split(",");
 
-    const missingCountryIds = selectedCountryIds.filter(
-      (id) => !countryIds.includes(parseInt(id)),
-    );
+      const missingCountryIds = selectedCountryIds.filter(
+        (id) => !countryIds.includes(parseInt(id)),
+      );
 
-    if (missingCountryIds.length > 0) {
-      const filteredCountries = selectedCountryIds
-        .filter((id) => countryIds.includes(parseInt(id)))
-        .join(",");
-      updateParam(FilterParams.Country, filteredCountries);
+      if (missingCountryIds.length > 0) {
+        const filteredCountries = selectedCountryIds
+          .filter((id) => countryIds.includes(parseInt(id)))
+          .join(",");
+        updateParam(FilterParams.Country, filteredCountries);
+      }
     }
-  }
+  }, [selectedCountries, countries, updateParam]);
 
-  if (selectedRockBands) {
-    const bandIds = bands.map((band) => band.id);
-    const selectedBandIds = selectedRockBands.split(",");
+  useEffect(() => {
+    if (selectedRockBands) {
+      const bandIds = bands.map((band) => band.id);
+      const selectedBandIds = selectedRockBands.split(",");
 
-    const missingBandIds = selectedBandIds.filter(
-      (id) => !bandIds.includes(parseInt(id)),
-    );
+      const missingBandIds = selectedBandIds.filter(
+        (id) => !bandIds.includes(parseInt(id)),
+      );
 
-    if (missingBandIds.length > 0) {
-      const filteredBands = selectedBandIds
-        .filter((id) => bandIds.includes(parseInt(id)))
-        .join(",");
-      updateParam(FilterParams.RockBands, filteredBands);
+      if (missingBandIds.length > 0) {
+        const filteredBands = selectedBandIds
+          .filter((id) => bandIds.includes(parseInt(id)))
+          .join(",");
+        updateParam(FilterParams.RockBands, filteredBands);
+      }
     }
-  }
+  }, [selectedRockBands, bands, updateParam]);
 
   return (
     <FiltersTemplate
