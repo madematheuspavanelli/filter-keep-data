@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 interface Params {
   options: SelectOption[];
   selectedIds: string[];
-  onUpdateOptions?: (param: string, options: SelectOption[]) => void;
+  // onUpdateOptions?: (param: string, options: SelectOption[]) => void;
   onUpdateValues?: (values: SelectOption[]) => void;
 }
 

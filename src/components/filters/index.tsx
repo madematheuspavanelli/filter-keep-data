@@ -1,21 +1,30 @@
 import { useURLParams } from "@/hooks/use-url-params";
 import { SelectOption } from "@/types/SelectOption";
-import { Select } from "@/components/select";
 import { FilterParams } from "@/enums/FilterParams";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { fetchCountry } from "@/api/country";
 import { Country } from "@/types/Country";
 import { fetchBands } from "@/api/bands";
+import { useMemo } from "react";
+import { Band } from "@/types/Band";
+import { FiltersTemplate } from "./template.tsx";
 
 export function Filter() {
   const { getParam, updateParam } = useURLParams();
 
-  const countries = getParam(FilterParams.Country);
-  const rockBands = getParam(FilterParams.RockBands);
+  const selectedCountries = getParam(FilterParams.Country);
+  const selectedRockBands = getParam(FilterParams.RockBands);
 
-  const { data: country_data } = useQuery({
-    queryKey: ["countries", rockBands],
-    queryFn: () => fetchCountry({ bandIds: rockBands }),
+  const handleUpdate = useMemo(
+    () => (param: string, values: SelectOption[]) => {
+      updateParam(param, values.map((value) => value.id).join(","));
+    },
+    [updateParam],
+  );
+
+  const { data: countries = [] } = useQuery({
+    queryKey: ["countries", selectedRockBands],
+    queryFn: () => fetchCountry({ bandIds: selectedRockBands }),
     placeholderData: keepPreviousData,
     select: (data) =>
       data.map((country: Country) => ({
@@ -24,45 +33,56 @@ export function Filter() {
       })),
   });
 
-  const { data: band_options } = useQuery({
-    queryKey: ["bands", countries],
-    queryFn: () => fetchBands({ countryIds: countries }),
+  const { data: bands = [] } = useQuery({
+    queryKey: ["bands", selectedCountries],
     placeholderData: keepPreviousData,
+    queryFn: () => fetchBands({ countryIds: selectedCountries }),
     select: (data) =>
-      data.map((country: Country) => ({
-        id: country.id,
-        name: country.name,
+      data.map((band: Band) => ({
+        id: band.id,
+        name: band.name,
       })),
   });
 
-  function handleUpdate(param: string, values: SelectOption[]) {
-    updateParam(param, values.map((value) => value.id).join(","));
+  if (selectedCountries) {
+    const countryIds = countries.map((country) => country.id);
+    const selectedCountryIds = selectedCountries.split(",");
+
+    const missingCountryIds = selectedCountryIds.filter(
+      (id) => !countryIds.includes(parseInt(id)),
+    );
+
+    if (missingCountryIds.length > 0) {
+      const filteredCountries = selectedCountryIds
+        .filter((id) => countryIds.includes(parseInt(id)))
+        .join(",");
+      updateParam(FilterParams.Country, filteredCountries);
+    }
+  }
+
+  if (selectedRockBands) {
+    const bandIds = bands.map((band) => band.id);
+    const selectedBandIds = selectedRockBands.split(",");
+
+    const missingBandIds = selectedBandIds.filter(
+      (id) => !bandIds.includes(parseInt(id)),
+    );
+
+    if (missingBandIds.length > 0) {
+      const filteredBands = selectedBandIds
+        .filter((id) => bandIds.includes(parseInt(id)))
+        .join(",");
+      updateParam(FilterParams.RockBands, filteredBands);
+    }
   }
 
   return (
-    <>
-      <div className="flex gap-4">
-        <Select
-          options={country_data || []}
-          selectedIds={getParam(FilterParams.Country)?.split(",") ?? []}
-          onUpdateValues={(values) =>
-            handleUpdate(FilterParams.Country, values)
-          }
-          onUpdateOptions={(options) => console.log(options)}
-          key="country"
-        />
-
-        <Select
-          options={band_options || []}
-          selectedIds={getParam(FilterParams.RockBands)?.split(",") ?? []}
-          onUpdateValues={(values) =>
-            handleUpdate(FilterParams.RockBands, values)
-          }
-          onUpdateOptions={(options) => console.log(options)}
-          key="rock_bands"
-        />
-      </div>
-      <pre>{JSON.stringify({ country_data }, null, 2)}</pre>
-    </>
+    <FiltersTemplate
+      bands={bands}
+      countries={countries}
+      handleUpdate={handleUpdate}
+      selectedCountries={selectedCountries}
+      selectedRockBands={selectedRockBands}
+    />
   );
 }
